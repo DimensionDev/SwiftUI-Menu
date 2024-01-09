@@ -21,13 +21,19 @@ class ListItem: Identifiable {
         // end init
         
         leadingMenuViewModel.actionViewModels = (1...5).map { i in
-            MenuActionView.ViewModel(title: "\(i)")
+            MenuActionView.StackLabelViewModel(title: "\(i)") {
+                print(i)
+            }
         }
         centerMenuViewModel.actionViewModels = (1...10).map { i in
-            MenuActionView.ViewModel(title: "\(i)")
+            MenuActionView.StackLabelViewModel(title: "\(i)") {
+                print(i)
+            }
         }
         trailingMenuViewModel.actionViewModels = (1...20).map { i in
-            MenuActionView.ViewModel(title: "\(i)")
+            MenuActionView.StackLabelViewModel(title: "\(i)") {
+                print(i)
+            }
         }
     }
 }

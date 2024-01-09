@@ -8,38 +8,51 @@
 import SwiftUI
 
 extension MenuActionView {
-    public class ViewModel: ObservableObject, Identifiable {
+    open class ViewModel: ObservableObject, Identifiable {
         public let id = UUID()
         
-        let background: UIColor
-
         // input
-        @Published public var title: String = ""
         @Published public var padding = EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-        var action: UIAction?
+        public private(set) var content: AnyView?
+        public private(set) var action: () -> Void
         
         // output
-        @Published public var isHighlight = false
-        @Published public var frameInWindow: CGRect = .zero
+        @Published public private(set) var isHighlight = false
+        @Published public private(set) var frameInWindow: CGRect = .zero
 
-        public init(title: String) {
-            self.title = title
-            self.background = [
-                UIColor.red,
-                UIColor.yellow,
-                UIColor.blue,
-                UIColor.green,
-                UIColor.gray,
-                UIColor.systemPink,
-                UIColor.purple,
-            ].randomElement()!
+        public init(
+            action: @escaping () -> Void = { }
+        ) {
+            self.action = action
             // end init
+        }
+        
+        public func setup<Content: View>(content: Content) {
+            self.content = AnyView(content)
+        }
+        
+        public func setup(action: @escaping () -> Void) {
+            self.action = action
+        }
+        
+        open func performAction() {
+            action()
+        }
+        
+        open func viewDidAppear() {
+            // open for hook
         }
     }
 }
 
 extension MenuActionView.ViewModel {
-    public func performAction() {
-        title = title + title
+    func update(isHighlight: Bool) {
+        self.isHighlight = isHighlight
+    }
+    
+    func update(frameInWindow: CGRect) {
+        if self.frameInWindow != frameInWindow {
+            self.frameInWindow = frameInWindow
+        }
     }
 }

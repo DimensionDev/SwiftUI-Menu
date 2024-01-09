@@ -45,10 +45,11 @@ extension ListRowView {
         HStack {
             Menu {
                 ForEach(item.leadingMenuViewModel.actionViewModels) { actionViewModel in
+                    let index = item.leadingMenuViewModel.actionViewModels.firstIndex(where: { $0.id == actionViewModel.id }) ?? 0
                     Button {
                         actionViewModel.performAction()
                     } label: {
-                        Text(actionViewModel.title)
+                        Text("\(index)")
                     }
                 }
             } label: {
@@ -58,10 +59,11 @@ extension ListRowView {
             Spacer()
             Menu {
                 ForEach(item.centerMenuViewModel.actionViewModels) { actionViewModel in
+                    let index = item.centerMenuViewModel.actionViewModels.firstIndex(where: { $0.id == actionViewModel.id }) ?? 0
                     Button {
                         actionViewModel.performAction()
                     } label: {
-                        Text(actionViewModel.title)
+                        Text("\(index)")
                     }
                 }
             } label: {
@@ -71,10 +73,11 @@ extension ListRowView {
             Spacer()
             Menu {
                 ForEach(item.trailingMenuViewModel.actionViewModels) { actionViewModel in
+                    let index = item.trailingMenuViewModel.actionViewModels.firstIndex(where: { $0.id == actionViewModel.id }) ?? 0
                     Button {
                         actionViewModel.performAction()
                     } label: {
-                        Text(actionViewModel.title)
+                        Text("\(index)")
                     }
                 }
             } label: {

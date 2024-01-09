@@ -7,6 +7,7 @@
 
 import os.log
 import SwiftUI
+import func QuartzCore.CACurrentMediaTime
 
 extension MenuView {
     public class ViewModel: ObservableObject {
@@ -21,6 +22,7 @@ extension MenuView {
         // input
         @Published public var actionViewModels: [MenuActionView.ViewModel]
         @Published public private(set) var isMenuPresented: Bool = false
+        private var menuPresentedUpdatedAt: CFTimeInterval = CACurrentMediaTime()
         
         weak var sourceView: MenuSourceView?
         weak var menuWindow: UIWindow?
@@ -41,6 +43,18 @@ extension MenuView.ViewModel {
     @MainActor
     func update(isMenuPresented: Bool) {
         self.isMenuPresented = isMenuPresented
+        self.menuPresentedUpdatedAt = CACurrentMediaTime()
+        
+        #if MENU_DEBUG
+        logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): isMenuPresented: \(isMenuPresented); transitionAnchor: \(self.transitionAnchor.debugDescription)")
+        #endif
+    }
+    
+    @MainActor
+    func viewDidAppear() {
+        for actionViewModel in self.actionViewModels {
+            actionViewModel.viewDidAppear()
+        }
     }
 }
 
@@ -167,6 +181,7 @@ extension MenuView.ViewModel {
 }
 
 extension MenuView.ViewModel {
+    @MainActor 
     func drag(location: CGPoint, state: UIGestureRecognizer.State) {
         logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): drag to location: \(location.debugDescription), state: \(state.name)")
         
@@ -178,11 +193,12 @@ extension MenuView.ViewModel {
         deselectMenuActionViews()
         
         // set highlight for menu action view at current location
+        var needsDismiss = false
         for actionViewModel in self.actionViewModels {
             let actionViewFrame = actionViewModel.frameInWindow
             let isContainsLocation = actionViewFrame.contains(location)
             
-            actionViewModel.isHighlight = isContainsLocation
+            actionViewModel.update(isHighlight: isContainsLocation)
             
             if isContainsLocation {
                 logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): action view \(actionViewModel.id) frameInWindow: \(actionViewFrame.debugDescription) contains location \(location.debugDescription)")
@@ -190,14 +206,48 @@ extension MenuView.ViewModel {
             
             if isContainsLocation, state.isEnd {
                 actionViewModel.performAction()
+                needsDismiss = true
             }
         }   // end for … in …
         
         // remove highlight if state is finish
         if state.isFinish {
-            deselectMenuActionViews()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                guard let self = self else { return }
+                self.deselectMenuActionViews()
+            
+                if needsDismiss {
+                    let now = CACurrentMediaTime()
+                    let delta = abs(now - self.menuPresentedUpdatedAt)
+                    self.logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): since present animation start: \(delta)")
+                    
+                    // strange animation on iOS 17+ after animation start time in random range abount (0.4 to 0.8)
+                    // do not dispatch dismiss animation to workaround it
+                    let bound = 0.38..<0.8
+                    if bound ~= delta {
+                        let boundary: Double = bound.upperBound - delta
+                        DispatchQueue.main.asyncAfter(deadline: .now() + boundary) { [weak self] in
+                            guard let self = self else { return }
+                            
+                            #if MENU_DEBUG
+                            self.checkPresentDelta()
+                            #endif
+                            
+                            self.update(isMenuPresented: false)
+                        }
+                    } else {
+                        self.update(isMenuPresented: false)
+                    }
+                }
+            }
         }
     }   // end func
+    
+    private func checkPresentDelta() {
+        let now = CACurrentMediaTime()
+        let delta = abs(now - self.menuPresentedUpdatedAt)
+        self.logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): since present animation start: \(delta)")
+    }
     
     private func checkDragFailedToScroll(location: CGPoint, state: UIGestureRecognizer.State) -> Bool {
         switch state {
@@ -235,7 +285,7 @@ extension MenuView.ViewModel {
     
     private func deselectMenuActionViews() {
         actionViewModels.forEach { actionViewModel in
-            actionViewModel.isHighlight = false
+            actionViewModel.update(isHighlight: false)
         }
     }
 }

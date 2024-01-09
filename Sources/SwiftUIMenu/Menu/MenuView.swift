@@ -48,7 +48,7 @@ public struct MenuView: View {
                             .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 0)
                             .offset(offset)
                             .transition(
-                                AnyTransition.scale(scale: 0.0)
+                                AnyTransition.scale
                                     .combined(with: AnyTransition.offset(
                                         x: offset.width + transitionAnchor.x,
                                         y: offset.height + transitionAnchor.y
@@ -60,13 +60,14 @@ public struct MenuView: View {
                             }
                         }
                     }   // end ZStack
-                    .animation(.snappy(duration: 0.4, extraBounce: 0.1), value: viewModel.isMenuPresented)
+                    .animation(.snappy(duration: 0.24, extraBounce: 0.1), value: viewModel.isMenuPresented)
                 }   // end .overlay
         }   // end ZStack
         .onAppear {
-            withAnimation(.snappy(duration: 0.4, extraBounce: 0.1)) {
+            withAnimation(.snappy(duration: 0.24, extraBounce: 0.1)) {
                 viewModel.update(isMenuPresented: true)
             }
+            viewModel.viewDidAppear()
         }
     }
 }
@@ -102,9 +103,7 @@ extension MenuView {
                                         value: frameInWindow
                                     )
                                     .onPreferenceChange(ViewFrameKey.self) { frame in
-                                        if actionViewModel.frameInWindow != frame {
-                                            actionViewModel.frameInWindow = frame
-                                        }
+                                        actionViewModel.update(frameInWindow: frame)
                                     }
                             }
                         }
