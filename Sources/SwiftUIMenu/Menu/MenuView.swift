@@ -29,18 +29,15 @@ public struct MenuView: View {
                         }
                 })
                 .overlay {
-                    let animationValues = viewModel.menuPresentAnimationValues
-                    let visiableMenuViewFrameInWindow = animationValues.visiableMenuViewFrameInWindow
-                    let offset = animationValues.offset
-                    let scaleEffectAnchor = animationValues.scaleEffectAnchor
                     ZStack {
+                        let animationValues = viewModel.menuPresentAnimationValues
                         Color.clear
                         if viewModel.isMenuPresented {
                             ScrollView(.vertical, showsIndicators: true) {
                                 contentView
-                                    .frame(height: viewModel.menuViewFrameInWindow.height)
+                                    .frame(height: animationValues.menuViewFrameInWindow.height)
                             }
-                            .frame(height: visiableMenuViewFrameInWindow.height)
+                            .frame(height: animationValues.visiableMenuViewFrameInWindow.height)
                             .modifier(ScrollBounceBehaviorViewModifier())
                             .modifier(ScrollIndicatorsFlashViewModifier())
                             .modifier(ScrollIndicatorsInsetViewModifier(margin: 7))
@@ -48,8 +45,8 @@ public struct MenuView: View {
                             .background(.regularMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                             .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 0)
-                            .scaleEffect(viewModel.isMenuExpand ? 1.0 : 0.2, anchor: scaleEffectAnchor)
-                            .offset(offset)
+                            .scaleEffect(viewModel.isMenuExpand ? 1.0 : 0.2, anchor: animationValues.scaleEffectAnchor)
+                            .offset(animationValues.offset)
                             .transition(AnyTransition.opacity)
                             .onDisappear {
                                 viewModel.delegate?.menuViewDidDisappear()

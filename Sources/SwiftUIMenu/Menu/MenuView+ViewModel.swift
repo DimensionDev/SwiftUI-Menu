@@ -26,12 +26,9 @@ extension MenuView {
         
         private var menuPresentedUpdatedAt: CFTimeInterval = CACurrentMediaTime()
         
-        var menuPresentAnimationValues: AnimationValues = AnimationValues(
-            menuSourceViewFrameInWindow: .zero, 
-            visiableMenuViewFrameInWindow: .zero,
-            offset: .zero,
-            transitionAnchor: .zero
-        )
+        var menuPresentAnimationValues: AnimationValues {
+            self.animationValues()
+        }
         
         weak var sourceView: MenuSourceView?
         weak var menuWindow: UIWindow?
@@ -53,7 +50,6 @@ extension MenuView.ViewModel {
     func update(isMenuPresented: Bool) {
         self.isMenuPresented = isMenuPresented
         self.menuPresentedUpdatedAt = CACurrentMediaTime()
-        self.menuPresentAnimationValues = self.animationValues()
 
         #if MENU_DEBUG
         logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): isMenuPresented: \(isMenuPresented); transitionAnchor: \(self.transitionAnchor.debugDescription)")
@@ -72,6 +68,7 @@ extension MenuView.ViewModel {
 extension MenuView.ViewModel {
     struct AnimationValues {
         let menuSourceViewFrameInWindow: CGRect
+        let menuViewFrameInWindow: CGRect
         let visiableMenuViewFrameInWindow: CGRect
         let offset: CGSize
         let transitionAnchor: CGPoint
@@ -79,11 +76,13 @@ extension MenuView.ViewModel {
         
         init(
             menuSourceViewFrameInWindow: CGRect,
+            menuViewFrameInWindow: CGRect,
             visiableMenuViewFrameInWindow: CGRect,
             offset: CGSize,
             transitionAnchor: CGPoint
         ) {
             self.menuSourceViewFrameInWindow = menuSourceViewFrameInWindow
+            self.menuViewFrameInWindow = menuViewFrameInWindow
             self.visiableMenuViewFrameInWindow = visiableMenuViewFrameInWindow
             self.offset = offset
             self.transitionAnchor = transitionAnchor
@@ -103,6 +102,7 @@ extension MenuView.ViewModel {
     func animationValues() -> AnimationValues {
         AnimationValues(
             menuSourceViewFrameInWindow: self.menuSourceViewFrameInWindow,
+            menuViewFrameInWindow: self.menuViewFrameInWindow,
             visiableMenuViewFrameInWindow: self.visiableMenuViewFrameInWindow,
             offset: self.offset,
             transitionAnchor: self.transitionAnchor

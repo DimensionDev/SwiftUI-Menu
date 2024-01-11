@@ -33,6 +33,18 @@ extension MenuActionView {
     }
 }
 
+extension MenuActionView.LabelViewModel {
+    @MainActor
+    public func update(title: String) {
+        self.title = title
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self else { return }
+            self.objectWillChange.send()
+        }
+    }
+}
+
 extension MenuActionView {
     public struct LabelContent: View {
         @ObservedObject var viewModel: MenuActionView.LabelViewModel
@@ -50,8 +62,10 @@ extension MenuActionView {
                         Image(uiImage: icon)
                     }
                 }
+                .labelStyle(CenterLabelStyle())
                 Spacer()
             }   // end HStack
         }
     }
 }
+
