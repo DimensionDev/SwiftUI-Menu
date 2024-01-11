@@ -15,7 +15,7 @@ let package = Package(
             targets: ["SwiftUIMenu"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/siteline/SwiftUI-Introspect.git", from: "0.1.4"),
+        .package(url: "https://github.com/siteline/SwiftUI-Introspect.git", from: "1.1.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +23,7 @@ let package = Package(
         .target(
             name: "SwiftUIMenu",
             dependencies: [
-                .product(name: "SwiftUIIntrospect", package: "SwiftUI-Introspect"),
+                .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
             ]//,
             // swiftSettings: [
             //     .define("MENU_DEBUG", .when(configuration: .debug)),

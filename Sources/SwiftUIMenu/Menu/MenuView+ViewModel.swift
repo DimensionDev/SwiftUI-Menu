@@ -22,7 +22,16 @@ extension MenuView {
         // input
         @Published public var actionViewModels: [MenuActionView.ViewModel]
         @Published public private(set) var isMenuPresented: Bool = false
+        @Published var isMenuExpand: Bool = false
+        
         private var menuPresentedUpdatedAt: CFTimeInterval = CACurrentMediaTime()
+        
+        var menuPresentAnimationValues: AnimationValues = AnimationValues(
+            menuSourceViewFrameInWindow: .zero, 
+            visiableMenuViewFrameInWindow: .zero,
+            offset: .zero,
+            transitionAnchor: .zero
+        )
         
         weak var sourceView: MenuSourceView?
         weak var menuWindow: UIWindow?
@@ -44,7 +53,8 @@ extension MenuView.ViewModel {
     func update(isMenuPresented: Bool) {
         self.isMenuPresented = isMenuPresented
         self.menuPresentedUpdatedAt = CACurrentMediaTime()
-        
+        self.menuPresentAnimationValues = self.animationValues()
+
         #if MENU_DEBUG
         logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): isMenuPresented: \(isMenuPresented); transitionAnchor: \(self.transitionAnchor.debugDescription)")
         #endif
@@ -60,6 +70,45 @@ extension MenuView.ViewModel {
 
 // MenuView: original ---(offset)---> visible
 extension MenuView.ViewModel {
+    struct AnimationValues {
+        let menuSourceViewFrameInWindow: CGRect
+        let visiableMenuViewFrameInWindow: CGRect
+        let offset: CGSize
+        let transitionAnchor: CGPoint
+        let scaleEffectAnchor: UnitPoint
+        
+        init(
+            menuSourceViewFrameInWindow: CGRect,
+            visiableMenuViewFrameInWindow: CGRect,
+            offset: CGSize,
+            transitionAnchor: CGPoint
+        ) {
+            self.menuSourceViewFrameInWindow = menuSourceViewFrameInWindow
+            self.visiableMenuViewFrameInWindow = visiableMenuViewFrameInWindow
+            self.offset = offset
+            self.transitionAnchor = transitionAnchor
+            self.scaleEffectAnchor = {
+                var y: CGFloat = transitionAnchor.y < 0 ? 0.0 : 1.0
+                if visiableMenuViewFrameInWindow.height > 0 {
+                    let ratio = (menuSourceViewFrameInWindow.midY - visiableMenuViewFrameInWindow.minY) / visiableMenuViewFrameInWindow.height
+                    if 0.0..<1.0 ~= ratio {
+                        y = min(1, max(0, y + ratio))
+                    }
+                }
+                return UnitPoint(x: 0.5, y: y)
+            }()
+        }
+    }
+    
+    func animationValues() -> AnimationValues {
+        AnimationValues(
+            menuSourceViewFrameInWindow: self.menuSourceViewFrameInWindow,
+            visiableMenuViewFrameInWindow: self.visiableMenuViewFrameInWindow,
+            offset: self.offset,
+            transitionAnchor: self.transitionAnchor
+        )
+    }
+    
     var menuSourceViewFrameInWindow: CGRect {
         guard let sourceView = self.sourceView else { return .zero }
         return sourceView.convert(sourceView.frame, to: nil)
@@ -103,14 +152,14 @@ extension MenuView.ViewModel {
         finalMenuViewFrameInWindow.origin.x += offset.width
         finalMenuViewFrameInWindow.origin.y += offset.height
         
-        // adapt horizontal safe area inset (default with addtional 24pt margin)
+        // adapt horizontal safe area inset (default with addtional 16pt margin)
         // - left
-        let frameMinX: CGFloat = menuWindow.safeAreaInsets.left + 24.0
+        let frameMinX: CGFloat = menuWindow.safeAreaInsets.left + 16.0
         if finalMenuViewFrameInWindow.minX < frameMinX {
             finalMenuViewFrameInWindow.origin.x = frameMinX
         }
         // - right
-        let frameMaxX: CGFloat = menuWindow.bounds.width - menuWindow.safeAreaInsets.right - 24.0
+        let frameMaxX: CGFloat = menuWindow.bounds.width - menuWindow.safeAreaInsets.right - 16.0
         if finalMenuViewFrameInWindow.maxX > frameMaxX {
             finalMenuViewFrameInWindow.origin.x = frameMaxX - finalMenuViewFrameInWindow.width
         }
@@ -217,27 +266,7 @@ extension MenuView.ViewModel {
                 self.deselectMenuActionViews()
             
                 if needsDismiss {
-                    let now = CACurrentMediaTime()
-                    let delta = abs(now - self.menuPresentedUpdatedAt)
-                    self.logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): since present animation start: \(delta)")
-                    
-                    // strange animation on iOS 17+ after animation start time in random range abount (0.4 to 0.8)
-                    // do not dispatch dismiss animation to workaround it
-                    let bound = 0.38..<0.8
-                    if bound ~= delta {
-                        let boundary: Double = bound.upperBound - delta
-                        DispatchQueue.main.asyncAfter(deadline: .now() + boundary) { [weak self] in
-                            guard let self = self else { return }
-                            
-                            #if MENU_DEBUG
-                            self.checkPresentDelta()
-                            #endif
-                            
-                            self.update(isMenuPresented: false)
-                        }
-                    } else {
-                        self.update(isMenuPresented: false)
-                    }
+                    self.update(isMenuPresented: false)
                 }
             }
         }

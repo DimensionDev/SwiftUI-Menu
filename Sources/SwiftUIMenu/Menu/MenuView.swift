@@ -13,7 +13,7 @@ protocol MenuViewDelegate: AnyObject {
 
 public struct MenuView: View {
     @ObservedObject var viewModel: ViewModel
-    
+
     public var body: some View {
         ZStack {
             invisibleContentView
@@ -29,9 +29,10 @@ public struct MenuView: View {
                         }
                 })
                 .overlay {
-                    let visiableMenuViewFrameInWindow = viewModel.visiableMenuViewFrameInWindow
-                    let offset = viewModel.offset
-                    let transitionAnchor = viewModel.transitionAnchor
+                    let animationValues = viewModel.menuPresentAnimationValues
+                    let visiableMenuViewFrameInWindow = animationValues.visiableMenuViewFrameInWindow
+                    let offset = animationValues.offset
+                    let scaleEffectAnchor = animationValues.scaleEffectAnchor
                     ZStack {
                         Color.clear
                         if viewModel.isMenuPresented {
@@ -43,28 +44,30 @@ public struct MenuView: View {
                             .modifier(ScrollBounceBehaviorViewModifier())
                             .modifier(ScrollIndicatorsFlashViewModifier())
                             .modifier(ScrollIndicatorsInsetViewModifier(margin: 7))
+                            .scaleEffect(viewModel.isMenuPresented ? 1 : 0.2, anchor: .center)
                             .background(.regularMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                             .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 0)
+                            .scaleEffect(viewModel.isMenuExpand ? 1.0 : 0.2, anchor: scaleEffectAnchor)
                             .offset(offset)
-                            .transition(
-                                AnyTransition.scale
-                                    .combined(with: AnyTransition.offset(
-                                        x: offset.width + transitionAnchor.x,
-                                        y: offset.height + transitionAnchor.y
-                                    ))
-                                    .combined(with: AnyTransition.opacity)
-                            )
+                            .transition(AnyTransition.opacity)
                             .onDisappear {
                                 viewModel.delegate?.menuViewDidDisappear()
                             }
                         }
                     }   // end ZStack
-                    .animation(.snappy(duration: 0.24, extraBounce: 0.1), value: viewModel.isMenuPresented)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 1), value: viewModel.isMenuPresented)
+                    .animation(.spring(duration: 0.2), value: viewModel.isMenuExpand)
                 }   // end .overlay
         }   // end ZStack
+        .edgesIgnoringSafeArea(.all)
+        .onChange(of: viewModel.isMenuPresented) { value in
+            withAnimation(.spring(duration: 0.2)) {
+                viewModel.isMenuExpand = value
+            }
+        }
         .onAppear {
-            withAnimation(.snappy(duration: 0.24, extraBounce: 0.1)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 1)) {
                 viewModel.update(isMenuPresented: true)
             }
             viewModel.viewDidAppear()

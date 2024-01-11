@@ -27,11 +27,11 @@ extension MenuActionView {
             // end init
         }
         
-        public func setup<Content: View>(content: Content) {
-            self.content = AnyView(content)
+        public func setup<Content: View>(content: () -> Content) {
+            self.content = AnyView(content())
         }
         
-        public func setup(action: @escaping () -> Void) {
+        public func setupAction(action: @escaping () -> Void) {
             self.action = action
         }
         

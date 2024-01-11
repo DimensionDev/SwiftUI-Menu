@@ -7,6 +7,7 @@
 
 import os.log
 import SwiftUI
+import Combine
 
 class MenuWindow: UIWindow {
     #if MENU_DEBUG
@@ -15,6 +16,8 @@ class MenuWindow: UIWindow {
     let logger = Logger(.disabled)
     #endif
     let menuViewModel: MenuView.ViewModel
+    
+    var disposeBag = Set<AnyCancellable>()
     
     init(windowScene: UIWindowScene, menuViewModel: MenuView.ViewModel) {
         self.menuViewModel = menuViewModel
@@ -28,6 +31,20 @@ class MenuWindow: UIWindow {
         menuViewModel.delegate = self
         rootViewController = menuViewController
         
+        if let overrideUserInterfaceStyle = menuViewModel.sourceView?.window?.overrideUserInterfaceStyle {
+            self.overrideUserInterfaceStyle = overrideUserInterfaceStyle
+        }
+        
+        if let sourceView = menuViewModel.sourceView {
+            sourceView.publisher(for: \.traitCollection)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] traitCollection in
+                    guard let self = self else { return }
+                    self.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
+                }
+                .store(in: &disposeBag)
+        }
+
         makeKeyAndVisible()
     }
     

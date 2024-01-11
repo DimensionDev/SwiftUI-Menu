@@ -19,7 +19,10 @@ extension MenuActionView {
             self.title = title
             super.init(action: action)
             // end init
-            setup(content: StackLabelContent(viewModel: self))
+            
+            setup {
+                StackLabelContent(viewModel: self)
+            }
         }
         
         override func viewDidAppear() {
