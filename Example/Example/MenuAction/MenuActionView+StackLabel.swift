@@ -45,7 +45,14 @@ extension MenuActionView {
             HStack(alignment: .center) {
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
-                    Text(String(format: "(%.2f, %.2f)(%.2f, %.2f)", viewModel.frameInWindow.origin.x, viewModel.frameInWindow.origin.y, viewModel.frameInWindow.width, viewModel.frameInWindow.height))
+                    let description = String(
+                        format: "(%.2f, %.2f)(%.2f, %.2f)",
+                        viewModel.frameInWindow.origin.x,
+                        viewModel.frameInWindow.origin.y,
+                        viewModel.frameInWindow.width,
+                        viewModel.frameInWindow.height
+                    )
+                    Text(description)
                         .font(.system(size: 9))
                         .lineLimit(1)
                 }

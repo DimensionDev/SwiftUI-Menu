@@ -21,10 +21,22 @@ class ViewController: UIViewController {
         let items = words.map { ListItem(text: $0) }
         return ListView.ViewModel(items: items)
     }()
+}
 
+extension ViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        title = "List"
+        navigationController?.tabBarItem.image = UIImage(systemName: "list.bullet")!
+        
+        navigationItem.largeTitleDisplayMode = .never
+        
+        let barAppearance = UINavigationBarAppearance()
+        barAppearance.configureWithOpaqueBackground()
+        navigationItem.standardAppearance = barAppearance
+        navigationItem.compactAppearance = barAppearance
+        navigationItem.scrollEdgeAppearance = barAppearance
         
         let hostingController = UIHostingController(rootView: ListView(viewModel: viewModel))
         addChild(hostingController)
@@ -38,7 +50,5 @@ class ViewController: UIViewController {
         ])
         hostingController.didMove(toParent: self)
     }
-
-
 }
 

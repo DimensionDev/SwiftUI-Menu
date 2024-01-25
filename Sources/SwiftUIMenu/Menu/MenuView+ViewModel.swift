@@ -38,6 +38,9 @@ extension MenuView {
         
         private var menuActionViewInitalFrameAtDrag: CGRect = .zero
         private var isDragTriggerScroll: Bool = false
+        
+        private let selectionFeedbackGenerator = UISelectionFeedbackGenerator()
+        private var lastActiveMenuActionViewID: UUID? = nil
          
         public init(actionViewModels: [MenuActionView.ViewModel] = []) {
             self.actionViewModels = actionViewModels
@@ -87,6 +90,13 @@ extension MenuView.ViewModel {
             self.offset = offset
             self.transitionAnchor = transitionAnchor
             self.scaleEffectAnchor = {
+                // x
+                var x: CGFloat = 0.5
+                if menuViewFrameInWindow.width > 0 {
+                    let ratio = (menuSourceViewFrameInWindow.midX - menuViewFrameInWindow.midX) / menuViewFrameInWindow.width
+                    x = min(1, max(0, x + ratio))
+                }
+                // y
                 var y: CGFloat = transitionAnchor.y < 0 ? 0.0 : 1.0
                 if visiableMenuViewFrameInWindow.height > 0 {
                     let ratio = (menuSourceViewFrameInWindow.midY - visiableMenuViewFrameInWindow.minY) / visiableMenuViewFrameInWindow.height
@@ -94,7 +104,7 @@ extension MenuView.ViewModel {
                         y = min(1, max(0, y + ratio))
                     }
                 }
-                return UnitPoint(x: 0.5, y: y)
+                return UnitPoint(x: x, y: y)
             }()
         }
     }
@@ -251,6 +261,14 @@ extension MenuView.ViewModel {
             
             if isContainsLocation {
                 logger.log(level: .debug, "\((#file as NSString).lastPathComponent, privacy: .public)[\(#line, privacy: .public)], \(#function, privacy: .public): action view \(actionViewModel.id) frameInWindow: \(actionViewFrame.debugDescription) contains location \(location.debugDescription)")
+                
+                let oldID = lastActiveMenuActionViewID
+                let newID = actionViewModel.id
+                lastActiveMenuActionViewID = newID
+                
+                if newID != oldID {
+                    selectionFeedbackGenerator.selectionChanged()
+                }
             }
             
             if isContainsLocation, state.isEnd {
@@ -264,7 +282,8 @@ extension MenuView.ViewModel {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 guard let self = self else { return }
                 self.deselectMenuActionViews()
-            
+                self.lastActiveMenuActionViewID = nil
+                
                 if needsDismiss {
                     self.update(isMenuPresented: false)
                 }

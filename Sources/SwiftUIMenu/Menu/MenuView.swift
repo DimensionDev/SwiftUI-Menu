@@ -13,6 +13,22 @@ protocol MenuViewDelegate: AnyObject {
 
 public struct MenuView: View {
     @ObservedObject var viewModel: ViewModel
+    
+    static var scaleFrom: CGFloat = 0.1
+    var scale: CGFloat {
+        viewModel.isMenuExpand ? 1.0 : MenuView.scaleFrom
+    }
+    var opacity: CGFloat {
+        viewModel.isMenuExpand ? 1.0 : 0.0
+    }
+    
+    static func defaultBouncyAnimation(isPresent: Bool) -> Animation {
+        if isPresent {
+            return Animation.interpolatingSpring(stiffness: 250, damping: 25)
+        } else {
+            return Animation.smooth(duration: 0.2)
+        }
+    }
 
     public var body: some View {
         ZStack {
@@ -32,39 +48,53 @@ public struct MenuView: View {
                     ZStack {
                         let animationValues = viewModel.menuPresentAnimationValues
                         Color.clear
-                        if viewModel.isMenuPresented {
-                            ScrollView(.vertical, showsIndicators: true) {
-                                contentView
-                                    .frame(height: animationValues.menuViewFrameInWindow.height)
-                            }
-                            .frame(height: animationValues.visiableMenuViewFrameInWindow.height)
-                            .modifier(ScrollBounceBehaviorViewModifier())
-                            .modifier(ScrollIndicatorsFlashViewModifier())
-                            .modifier(ScrollIndicatorsInsetViewModifier(margin: 7))
-                            .scaleEffect(viewModel.isMenuPresented ? 1 : 0.2, anchor: .center)
-                            .background(.regularMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                            .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 0)
-                            .scaleEffect(viewModel.isMenuExpand ? 1.0 : 0.2, anchor: animationValues.scaleEffectAnchor)
-                            .offset(animationValues.offset)
-                            .transition(AnyTransition.opacity)
-                            .onDisappear {
-                                viewModel.delegate?.menuViewDidDisappear()
-                            }
+                        ScrollView(.vertical, showsIndicators: true) {
+                            contentView
+                                .frame(height: animationValues.menuViewFrameInWindow.height)
                         }
+                        .frame(height: animationValues.visiableMenuViewFrameInWindow.height)
+                        .modifier(ScrollBounceBehaviorViewModifier())
+                        .modifier(ScrollIndicatorsFlashViewModifier())
+                        .modifier(ScrollIndicatorsInsetViewModifier(margin: 7))
+                        .mask(
+                            Color.clear
+                                .overlay(alignment: .top) {
+                                    let height = viewModel.isMenuExpand ? nil : animationValues.visiableMenuViewFrameInWindow.height / 3.0
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .frame(height: height, alignment: .top)
+                                }
+                        )
+                        .background(alignment: .top) {
+                            let height = viewModel.isMenuExpand ? nil : animationValues.visiableMenuViewFrameInWindow.height / 3.0
+                            Color.clear
+                                .frame(height: height, alignment: .top)
+                                .background(.regularMaterial)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 0)
+                        .scaleEffect(scale, anchor: animationValues.scaleEffectAnchor)
+                        .opacity(opacity)
+                        .animation(MenuView.defaultBouncyAnimation(isPresent: viewModel.isMenuExpand), value: viewModel.isMenuExpand)
+                        .modifier(AnimationValueListener(value: scale, handler: { value in
+                            let targetValue = scale
+                            if targetValue == value, value == MenuView.scaleFrom {
+                                DispatchQueue.main.async {
+                                    viewModel.delegate?.menuViewDidDisappear()
+                                }
+                            }
+                        }))
+                        .offset(animationValues.offset)
                     }   // end ZStack
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 1), value: viewModel.isMenuPresented)
-                    .animation(.spring(duration: 0.2), value: viewModel.isMenuExpand)
                 }   // end .overlay
         }   // end ZStack
         .edgesIgnoringSafeArea(.all)
         .onChange(of: viewModel.isMenuPresented) { value in
-            withAnimation(.spring(duration: 0.2)) {
+            withAnimation(MenuView.defaultBouncyAnimation(isPresent: value)) {
                 viewModel.isMenuExpand = value
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 1)) {
+            withAnimation(MenuView.defaultBouncyAnimation(isPresent: true)) {
                 viewModel.update(isMenuPresented: true)
             }
             viewModel.viewDidAppear()

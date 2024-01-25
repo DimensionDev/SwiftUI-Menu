@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DB2A584A2B6253500087C835 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2A58492B6253500087C835 /* TabBarController.swift */; };
 		DB7C598D2B4822DC003166B8 /* LookinServer in Frameworks */ = {isa = PBXBuildFile; productRef = DB7C598C2B4822DC003166B8 /* LookinServer */; };
 		DB81468E2B4D57D200246D64 /* MenuActionView+StackLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB81468D2B4D57D200246D64 /* MenuActionView+StackLabel.swift */; };
 		DB87BB072B3C089B006292B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB87BB062B3C089B006292B7 /* AppDelegate.swift */; };
@@ -22,6 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DB2A58492B6253500087C835 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
 		DB81468D2B4D57D200246D64 /* MenuActionView+StackLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MenuActionView+StackLabel.swift"; sourceTree = "<group>"; };
 		DB87BB032B3C089B006292B7 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB87BB062B3C089B006292B7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -50,6 +52,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DB2A584B2B6253910087C835 /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				DB87BB0A2B3C089B006292B7 /* ViewController.swift */,
+				DB87BB1B2B3C09F5006292B7 /* ListView.swift */,
+				DB87BB1D2B3C0A10006292B7 /* ListRowView.swift */,
+				DB87BB1F2B3C0DB5006292B7 /* ListItem.swift */,
+			);
+			path = ViewController;
+			sourceTree = "<group>";
+		};
 		DB81468F2B4D57D600246D64 /* MenuAction */ = {
 			isa = PBXGroup;
 			children = (
@@ -81,10 +94,8 @@
 			children = (
 				DB87BB062B3C089B006292B7 /* AppDelegate.swift */,
 				DB87BB082B3C089B006292B7 /* SceneDelegate.swift */,
-				DB87BB0A2B3C089B006292B7 /* ViewController.swift */,
-				DB87BB1B2B3C09F5006292B7 /* ListView.swift */,
-				DB87BB1D2B3C0A10006292B7 /* ListRowView.swift */,
-				DB87BB1F2B3C0DB5006292B7 /* ListItem.swift */,
+				DB2A58492B6253500087C835 /* TabBarController.swift */,
+				DB2A584B2B6253910087C835 /* ViewController */,
 				DB81468F2B4D57D600246D64 /* MenuAction */,
 				DB87BB0C2B3C089B006292B7 /* Main.storyboard */,
 				DB87BB0F2B3C089C006292B7 /* Assets.xcassets */,
@@ -180,6 +191,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB87BB202B3C0DB5006292B7 /* ListItem.swift in Sources */,
+				DB2A584A2B6253500087C835 /* TabBarController.swift in Sources */,
 				DB87BB1C2B3C09F5006292B7 /* ListView.swift in Sources */,
 				DB87BB0B2B3C089B006292B7 /* ViewController.swift in Sources */,
 				DB81468E2B4D57D200246D64 /* MenuActionView+StackLabel.swift in Sources */,
