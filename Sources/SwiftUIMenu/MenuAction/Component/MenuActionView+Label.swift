@@ -11,14 +11,17 @@ extension MenuActionView {
     open class LabelViewModel: MenuActionView.ViewModel {
         @Published public var title: String = ""
         @Published public var icon: UIImage?
+        @Published public var tint: UIColor?
         
         public init(
             title: String,
             icon: UIImage? = nil,
+            tint: UIColor? = nil,
             action: @escaping () -> Void = { }
         ) {
             self.title = title
             self.icon = icon
+            self.tint = tint
             super.init(action: action)
             // end init
             
@@ -55,6 +58,7 @@ extension MenuActionView {
         
         public var body: some View {
             HStack(alignment: .center) {
+                let tintColor = viewModel.tint.flatMap { Color(uiColor: $0) }
                 Label {
                     Text(viewModel.title)
                 } icon: {
@@ -63,6 +67,7 @@ extension MenuActionView {
                     }
                 }
                 .labelStyle(CenterLabelStyle())
+                .foregroundColor(tintColor)
                 Spacer()
             }   // end HStack
         }
